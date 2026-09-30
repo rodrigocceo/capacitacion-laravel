@@ -46,4 +46,12 @@ class AuthController extends Controller
             $request->user()
         ]);
     }
+
+    public function logout(Request $request){
+        $request->user()->token()->revoke();
+
+        return response()->json([
+            'message'=>'Sesion terminada con exito'
+        ]);
+    }
 }
