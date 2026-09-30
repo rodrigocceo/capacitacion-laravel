@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -53,5 +54,15 @@ class AuthController extends Controller
         return response()->json([
             'message'=>'Sesion terminada con exito'
         ]);
+    }
+
+    public function redirectToProvider($provider){
+        if(!config("services.$provider")) abort('404');
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function handleProviderCallback($provider){
+        if(!config("services.$provider")) abort('404');
+        $user = Socialite::driver($provider)->user();
     }
 }
