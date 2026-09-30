@@ -13,3 +13,4 @@ Route::get('/inicio', function () {
 })->middleware('auth:api');
 
 Route::post('login', [AuthController::class, 'login']);
+Route::get('user', [AuthController::class, 'user'])->middleware('auth:api');

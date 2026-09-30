@@ -40,4 +40,10 @@ class AuthController extends Controller
             'expires_at' => $token->expires_at->toDateTimeString(),
         ]);
     }
+
+    public function user(Request $request){
+        return response()->json([
+            $request->user()
+        ]);
+    }
 }
