@@ -8,4 +8,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
+Route::get('/inicio', function () {
+    return 'hola mundo';
+})->middleware('auth:api');
+
 Route::post('login', [AuthController::class, 'login']);
