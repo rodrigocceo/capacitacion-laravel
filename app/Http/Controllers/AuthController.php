@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
+use App\Models\User;
+use App\Models\SocialLogin;
 
 class AuthController extends Controller
 {
@@ -53,5 +57,45 @@ class AuthController extends Controller
         return response()->json([
             'message'=>'Sesion terminada con exito'
         ]);
+    }
+
+    public function redirectToProvider($provider){
+        if(!config("services.$provider")) abort('404');
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function handleProviderCallback($provider){
+        if(!config("services.$provider")) abort('404');
+        
+        $userSocialite = Socialite::driver($provider)->user();
+
+        $existingLogin = SocialLogin::where('nick_email', $userSocialite->getEmail())
+                                ->orWhere('nick_email', $userSocialite->getNickname())
+                                ->first();
+
+        if($existingLogin){
+            $user = User::find($existingLogin->user_id);
+            return $this->loginAndRedirect($user);
+        }else{
+            $user = User::create([
+                'name' => $userSocialite->getName(),
+                'email' => $userSocialite->email ? $userSocialite->email : $userSocialite->nickname,
+                'password' => bcrypt(Str::random(10))
+            ]);
+
+            SocialLogin::create([
+                'user_id'=>$user->id,
+                'provider'=>$provider,
+                'nick_email' => $userSocialite->email ? $userSocialite->email : $userSocialite->nickname,
+                'social_id' => $userSocialite->id
+            ]);
+
+            return $this->loginAndRedirect($user);
+        }
+    }
+
+    public function loginAndRedirect($user){
+        Auth::login($user);
+        return redirect()->to('user');
     }
 }
